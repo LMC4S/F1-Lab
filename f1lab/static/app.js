@@ -19,8 +19,10 @@ const state = {
 /* ---------------------------------------------------------------- color */
 
 const SEC_COLORS = ["#f87171", "#60a5fa", "#fbbf24"];      // S1 / S2 / S3
-const SPEED_RAMP = ["#1d4ed8", "#0ea5e9", "#22d3ee", "#a5f3fc"]; // slow -> fast
-const GAP_RAMP = ["#34d399", "#566072", "#f87171"];        // gaining -> losing
+// slow -> fast: one hue, wide lightness spread so corners pop from straights
+const SPEED_RAMP = ["#0a2a5e", "#1160b4", "#22a7d8", "#7ef0ff", "#e9fdff"];
+// track dominance: your color <- neutral -> reference's color
+const GAP_RAMP = ["#22d3ee", "#39414f", "#fb923c"];
 
 function hex2rgb(h) {
   return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16),
@@ -319,10 +321,11 @@ function fitMap() {
       if (s.z[i] < minZ) minZ = s.z[i]; if (s.z[i] > maxZ) maxZ = s.z[i];
     }
   }
-  const pad = 58 * dpr, padT = 78 * dpr;  // room for corner badges + legend row
+  // padding leaves room for corner badges, the legend row and the toolbar
+  const pad = 58 * dpr, padT = 64 * dpr, padB = 78 * dpr;
   // keep the track clear of the HUD panel when there's room for both
   const hudReserve = map.clientWidth >= 900 ? 410 * dpr : 0;
-  const w = map.width - 2 * pad - hudReserve, h = map.height - padT - pad;
+  const w = map.width - 2 * pad - hudReserve, h = map.height - padT - padB;
   const scale = Math.min(w / (maxX - minX || 1), h / (maxZ - minZ || 1));
   view = {
     scale, dpr,
@@ -815,13 +818,18 @@ function updateToolbar() {
   for (const b of document.querySelectorAll("#mode-seg button"))
     b.classList.toggle("on", b.dataset.mode === state.mode);
   const bar = $("leg-bar"), lo = $("leg-lo"), hi = $("leg-hi");
+  const title = $("leg-title");
   if (state.mode === "gap") {
+    title.textContent = "TRACK DOMINANCE";
     bar.style.background = `linear-gradient(90deg, ${GAP_RAMP.join(",")})`;
-    lo.textContent = "gaining"; hi.textContent = "losing";
+    lo.textContent = "YOU FASTER"; lo.style.color = "#22d3ee";
+    hi.textContent = "REF FASTER"; hi.style.color = "#fb923c";
   } else {
+    title.textContent = "SPEED";
     bar.style.background = `linear-gradient(90deg, ${SPEED_RAMP.join(",")})`;
     const r = state.lapA.spdRange || [0, 0];
-    lo.textContent = r[0] + ""; hi.textContent = r[1] + " km/h";
+    lo.textContent = r[0]; lo.style.color = "";
+    hi.textContent = r[1] + " KM/H"; hi.style.color = "";
   }
 }
 

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>F1 Lab</title>
+<link rel="stylesheet" href="titillium.css">
 <link rel="stylesheet" href="style.css">
 <script>
 if (location.protocol === "file:") {
@@ -21,7 +22,7 @@ if (location.protocol === "file:") {
 </head>
 <body>
 <header>
-  <div class="brand">F1&nbsp;<span>LAB</span></div>
+  <div class="brand"><b>F1</b><span>LAB</span></div>
   <div id="js-stamp" class="chip idle" title="scripts did not run — check the browser console">JS ✗</div>
   <div id="status-chip" class="chip idle">IDLE</div>
   <div id="status-detail"></div>
@@ -90,6 +91,7 @@ if (location.protocol === "file:") {
           <button data-mode="gap" disabled>GAP</button>
         </div>
         <div id="color-legend">
+          <span id="leg-title"></span>
           <span id="leg-lo"></span><div id="leg-bar"></div><span id="leg-hi"></span>
         </div>
       </div>
