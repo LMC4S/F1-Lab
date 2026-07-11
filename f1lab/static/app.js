@@ -408,14 +408,10 @@ function renderMapStatic() {
   dctx = mapStatic.getContext("2d");
   const A = state.lapA, dpr = view.dpr, s = A.samples;
 
-  // ribbon: sector-tinted edge under a dark road surface
-  if (A.secD) {
-    const ranges = [[0, A.secD[0]], [A.secD[0], A.secD[1]], [A.secD[1], A.maxD]];
-    ranges.forEach((r, i) => rangeStroke(A, r[0], r[1], SEC_COLORS[i], 13, 0.5));
-  } else {
-    fullStroke(A, "#2a3242", 13);
-  }
-  fullStroke(A, "#141a25", 9);
+  // ribbon: neutral edge under a dark road surface; the colored S2/S3
+  // gates alone mark the sectors (full sector tinting was too loud)
+  fullStroke(A, "#282c35", 12.5, 0.9);
+  fullStroke(A, "#101318", 9);
 
   if (state.lapB) fullStroke(state.lapB, "rgba(251,146,60,.25)", 1.5);
 
@@ -673,15 +669,15 @@ function buildChart(cfg) {
   const Y = (v) => padT + (1 - (v - min) / (max - min)) * (h - padT - padB);
 
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "#0e1219"; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#0e0f13"; ctx.fillRect(0, 0, w, h);
   drawSectorBands(ctx, A, X, w, h);
-  ctx.strokeStyle = "#1c2331"; ctx.lineWidth = 1;
+  ctx.strokeStyle = "#1d1f26"; ctx.lineWidth = 1;
   for (const f of [0.25, 0.5, 0.75]) {
     ctx.beginPath(); ctx.moveTo(0, Y(min + (max - min) * f));
     ctx.lineTo(w, Y(min + (max - min) * f)); ctx.stroke();
   }
   if (cfg.zero) {
-    ctx.strokeStyle = "#2a3242";
+    ctx.strokeStyle = "#2b2e37";
     ctx.beginPath(); ctx.moveTo(0, Y(0)); ctx.lineTo(w, Y(0)); ctx.stroke();
   }
   // corner numbers along the top of the speed chart
@@ -734,9 +730,9 @@ function buildDeltaChart() {
   const w = cv.width, h = cv.height;
   const X = (d) => (d / chartMaxD) * w;
   const Y = (v) => (1 - (v + dmax) / (2 * dmax)) * (h - 6 * dpr) + 3 * dpr;
-  ctx.fillStyle = "#0e1219"; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#0e0f13"; ctx.fillRect(0, 0, w, h);
   drawSectorBands(ctx, A, X, w, h);
-  ctx.strokeStyle = "#2a3242";
+  ctx.strokeStyle = "#2b2e37";
   ctx.beginPath(); ctx.moveTo(0, Y(0)); ctx.lineTo(X(maxD), Y(0)); ctx.stroke();
 
   // fill: above zero = losing time (red), below = gaining (green)
