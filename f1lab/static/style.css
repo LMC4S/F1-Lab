@@ -224,6 +224,7 @@ select {
   fill: none; stroke: #3d4452; stroke-width: 17; stroke-linecap: round;
 }
 .wheel-gripline line { stroke: #2b3039; stroke-width: 2; stroke-linecap: round; }
+.wheel-arm line { stroke: #333947; stroke-width: 9; stroke-linecap: round; }
 .wheel-plate { fill: #282d38; stroke: #191d25; stroke-width: 1.5; }
 .wheel-screen { fill: #0c0f14; stroke: #454d5c; stroke-width: 1.5; }
 .wheel-led circle { fill: #3a4150; }
