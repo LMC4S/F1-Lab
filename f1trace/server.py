@@ -14,7 +14,7 @@ import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from . import db, ids
+from . import __version__, db, ids
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 
@@ -64,6 +64,7 @@ def make_handler(db_path, recorder, demo=False):
                 if path == "/api/status":
                     st = (recorder.get_status() if recorder
                           else {"listening": False})
+                    st["version"] = __version__
                     if demo:
                         st["demo"] = True
                     return self._json(st)
@@ -154,9 +155,13 @@ def make_handler(db_path, recorder, demo=False):
         def static(self, path):
             if path in ("/", "/index.html"):
                 path = "/index.html"
-            fname = os.path.normpath(path.lstrip("/"))
-            full = os.path.join(STATIC_DIR, fname)
-            if not full.startswith(STATIC_DIR) or not os.path.isfile(full):
+            # Resolve to a real path and confirm it stays inside STATIC_DIR:
+            # normpath alone leaves a leading "../" in place, and the joined
+            # string still starts with STATIC_DIR, so compare real paths.
+            full = os.path.realpath(os.path.join(STATIC_DIR, path.lstrip("/")))
+            root = os.path.realpath(STATIC_DIR)
+            if os.path.commonpath([full, root]) != root or \
+                    not os.path.isfile(full):
                 return self._json({"error": "not found"}, 404)
             ctype = mimetypes.guess_type(full)[0] or "application/octet-stream"
             with open(full, "rb") as f:
@@ -165,8 +170,9 @@ def make_handler(db_path, recorder, demo=False):
     return Handler
 
 
-def serve(db_path, recorder, http_port=8020, demo=False, open_browser=False):
-    server = ThreadingHTTPServer(("0.0.0.0", http_port),
+def serve(db_path, recorder, http_port=8020, demo=False, open_browser=False,
+          host="127.0.0.1"):
+    server = ThreadingHTTPServer((host, http_port),
                                  make_handler(db_path, recorder, demo))
     print("[f1trace] viewer at http://localhost:%d" % http_port)
     if open_browser:

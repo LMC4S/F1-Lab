@@ -7,6 +7,7 @@ import socket
 import tempfile
 import webbrowser
 
+from . import __version__
 from . import recorder as recorder_mod
 from . import server
 
@@ -23,12 +24,19 @@ def lan_ip():
 
 
 def main():
-    ap = argparse.ArgumentParser(prog="f1trace",
-                                 description="F1 25/26 telemetry recorder + viewer")
+    ap = argparse.ArgumentParser(
+        prog="f1trace",
+        description="TRACE — telemetry recorder + viewer for F1 25")
+    ap.add_argument("--version", action="version",
+                    version="TRACE %s" % __version__)
     ap.add_argument("--udp-port", type=int, default=20777,
                     help="UDP port the game broadcasts to (default 20777)")
     ap.add_argument("--http-port", type=int, default=8020,
                     help="viewer web port (default 8020)")
+    ap.add_argument("--host", default="127.0.0.1",
+                    help="address the viewer listens on (default 127.0.0.1, "
+                         "local only; use 0.0.0.0 to reach it from other "
+                         "devices on the network)")
     ap.add_argument("--db", default=None, help="database file path")
     ap.add_argument("--demo", action="store_true",
                     help="browse two bundled example laps; no game or "
@@ -56,9 +64,10 @@ def main():
 
     print("=" * 62)
     if args.demo:
-        print("  TRACE — demo: two bundled Melbourne laps, no recording")
+        print("  TRACE %s — demo: two bundled Melbourne laps, no recording"
+              % __version__)
     else:
-        print("  TRACE — telemetry recorder + viewer")
+        print("  TRACE %s — telemetry recorder + viewer" % __version__)
         print("  In the game set:  Settings > Telemetry")
         print("    UDP Telemetry: On    UDP Broadcast: Off")
         print("    UDP IP Address: %s   Port: %d" % (lan_ip(), args.udp_port))
@@ -72,7 +81,7 @@ def main():
         rec.start()
     try:
         server.serve(db_path, rec, http_port=args.http_port, demo=args.demo,
-                     open_browser=not args.no_browser)
+                     open_browser=not args.no_browser, host=args.host)
     except KeyboardInterrupt:
         print("\n[f1trace] bye")
     except OSError:

@@ -43,11 +43,28 @@ Windows (PowerShell):
 iwr https://github.com/LMC4S/F1-25-Trace/archive/refs/heads/main.zip -OutFile F1-25-Trace.zip; Expand-Archive F1-25-Trace.zip . -Force; cd F1-25-Trace-main; python -m f1trace
 ```
 
+The game can run on the same PC or a different one on the network — the
+recorder receives the telemetry either way:
+
+```
+   F1 25 (any PC on the LAN)            this PC
+  ┌───────────────────────┐        ┌──────────────────────────┐
+  │  broadcasts telemetry  │  UDP   │  recorder  →  data/*.db  │
+  │  over UDP :20777       │───────▶│               │          │
+  └───────────────────────┘        │            viewer :8020  │
+                                    │               │          │
+                                    │        browser (this PC) │
+                                    └──────────────────────────┘
+```
+
 Details:
 
-- Recorder listens on UDP **20777**; viewer at **http://localhost:8020**;
-  laps stored in `data/f1trace.db` (SQLite)
-- Options: `--udp-port`, `--http-port`, `--db`, `--no-browser`
+- Recorder listens on UDP **20777** (all interfaces, so the game may be on
+  another PC); viewer at **http://localhost:8020**, reachable only from
+  this PC; laps stored in `data/f1trace.db` (SQLite)
+- Options: `--udp-port`, `--http-port`, `--db`, `--no-browser`, `--host`
+  (viewer bind address; defaults to `127.0.0.1` — set `0.0.0.0` to open the
+  viewer to other devices on the network), `--version`
 - `python3 -m f1trace --demo` — the two bundled Melbourne laps in the
   local viewer, no game and no recording; the browser demo linked above,
   but offline

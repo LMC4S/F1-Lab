@@ -134,9 +134,7 @@ function trackGeom(tid) {
   geom.xform = null;   // affine game->outline map (set by calibration)
   try {
     // "cal2": xform is fitted in the rotated frame, older entries are not.
-    // localStorage keys keep the pre-rename "f1lab." prefix so saved
-    // calibrations and layout survive the TRACE rename.
-    const cal = JSON.parse(localStorage.getItem("f1lab.cal2." + tid));
+    const cal = JSON.parse(localStorage.getItem("f1trace.cal2." + tid));
     if (cal && "m" in cal) {
       applyCal(geom, cal);
       geom.xform = cal.m;
@@ -398,7 +396,7 @@ function calibrateGeom(geom, lap, tid) {
   }
   geom.xform = affineFit(pairs);
   try {
-    localStorage.setItem("f1lab.cal2." + tid, JSON.stringify(
+    localStorage.setItem("f1trace.cal2." + tid, JSON.stringify(
       { rev: best.rev, off: best.off, m: geom.xform }));
   } catch (e) { /* private mode etc. */ }
 }
@@ -670,6 +668,7 @@ let lastLapStamp = "";
 async function pollStatus() {
   try {
     const st = await api("api/status");
+    if (st.version) $("brand").title = "TRACE " + st.version;
     state.readonly = !!st.static;
     if (state.readonly) $("list-foot").style.display = "none";
     const chip = $("status-chip");
@@ -1904,13 +1903,13 @@ window.addEventListener("keydown", (e) => {
 {
   const setSide = (collapsed) => {
     $("sidebar").classList.toggle("collapsed", collapsed);
-    try { localStorage.setItem("f1lab.side", collapsed ? "1" : "0"); }
+    try { localStorage.setItem("f1trace.side", collapsed ? "1" : "0"); }
     catch (e) { /* private mode */ }
     if (state.lapA) rebuildScene();   // stage width changed
   };
   $("side-toggle").addEventListener("click", () => setSide(true));
   $("side-rail").addEventListener("click", () => setSide(false));
-  if (localStorage.getItem("f1lab.side") === "1") setSide(true);
+  if (localStorage.getItem("f1trace.side") === "1") setSide(true);
 }
 
 /* Floating telemetry card: drag anywhere on the stage; steering section
@@ -1918,8 +1917,8 @@ window.addEventListener("keydown", (e) => {
 {
   const hud = $("hud"), stage = $("stage");
   try {
-    state.hudPos = JSON.parse(localStorage.getItem("f1lab.hudPos"));
-    state.hudSteer = localStorage.getItem("f1lab.hudSteer") !== "0";
+    state.hudPos = JSON.parse(localStorage.getItem("f1trace.hudPos"));
+    state.hudSteer = localStorage.getItem("f1trace.hudSteer") !== "0";
   } catch (e) { /* defaults */ }
   applyHudSteer();
   applyHudPos();
@@ -1941,14 +1940,14 @@ window.addEventListener("keydown", (e) => {
   const drop = () => {
     if (!moving) return;
     moving = false; hud.classList.remove("drag");
-    try { localStorage.setItem("f1lab.hudPos", JSON.stringify(state.hudPos)); }
+    try { localStorage.setItem("f1trace.hudPos", JSON.stringify(state.hudPos)); }
     catch (e) { /* private mode */ }
   };
   hud.addEventListener("pointerup", drop);
   hud.addEventListener("pointercancel", drop);
   $("hud-steer-btn").addEventListener("click", () => {
     state.hudSteer = !state.hudSteer;
-    try { localStorage.setItem("f1lab.hudSteer", state.hudSteer ? "1" : "0"); }
+    try { localStorage.setItem("f1trace.hudSteer", state.hudSteer ? "1" : "0"); }
     catch (e) { /* private mode */ }
     applyHudSteer();
     applyHudPos();   // re-clamp: the card just changed height
@@ -1962,7 +1961,7 @@ window.addEventListener("keydown", (e) => {
   // be dragged (or its steering section hidden) if space gets tight
   const maxFrac = () =>
     Math.max(0.2, Math.min(0.72, 1 - 460 / mainEl.clientHeight));
-  const saved = parseFloat(localStorage.getItem("f1lab.chartsFrac"));
+  const saved = parseFloat(localStorage.getItem("f1trace.chartsFrac"));
   if (saved >= 0.12 && saved <= 0.72)
     chartsEl.style.height = Math.min(saved, maxFrac()) * 100 + "%";
   let dragging = false, raf = 0;
@@ -1976,7 +1975,7 @@ window.addEventListener("keydown", (e) => {
     const frac = Math.min(maxFrac(),
       Math.max(0.12, (r.bottom - e.clientY - 6) / r.height));
     chartsEl.style.height = frac * 100 + "%";
-    try { localStorage.setItem("f1lab.chartsFrac", frac.toFixed(3)); } catch (err) {}
+    try { localStorage.setItem("f1trace.chartsFrac", frac.toFixed(3)); } catch (err) {}
     if (!raf) raf = requestAnimationFrame(() => {
       raf = 0;
       if (state.lapA) rebuildScene();

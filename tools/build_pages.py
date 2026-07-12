@@ -17,7 +17,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from f1trace import db, ids  # noqa: E402
+from f1trace import __version__, db, ids  # noqa: E402
 
 
 def dump(out, path, obj):
@@ -35,7 +35,8 @@ def main():
     con = sqlite3.connect(os.path.join(ROOT, "f1trace", "demo.db"))
     con.row_factory = sqlite3.Row
 
-    dump(out, "api/status", {"listening": False, "demo": True, "static": True})
+    dump(out, "api/status", {"listening": False, "demo": True,
+                             "static": True, "version": __version__})
 
     tracks = [dict(r) for r in con.execute(
         "SELECT s.track_id, s.track_name, COUNT(l.id) AS n_laps,"
