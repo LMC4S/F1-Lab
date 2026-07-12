@@ -179,4 +179,7 @@ share; any modified version offered as a network service must publish its
 source under the same license. Bundled
 [Titillium Web](https://fonts.google.com/specimen/Titillium+Web) fonts are
 licensed under the [SIL Open Font License 1.1](f1lab/static/fonts/OFL.txt).
+Bundled circuit outlines (`f1lab/static/tracks.json`) are derived from the
+[f1-circuits](https://github.com/bacinger/f1-circuits) dataset, © 2019–2025
+Tomislav Bacinger, [MIT License](f1lab/static/tracks-LICENSE.txt).
 Not affiliated with Formula 1 or EA/Codemasters.
