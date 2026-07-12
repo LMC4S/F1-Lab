@@ -172,6 +172,7 @@ if (location.protocol === "file:") {
         </div>
         <div class="seg">
           <button id="setup-btn" title="car setup + assists of the viewed lap">SETUP</button>
+          <button id="export-btn" title="save the viewed lap as a .trace file — send it to someone, they drop it onto their TRACE window to compare">EXPORT</button>
         </div>
         <div id="color-legend">
           <span id="leg-title"></span>
@@ -193,7 +194,9 @@ if (location.protocol === "file:") {
         Mark any other lap of the same track as <b>VS</b> to compare — even
         from a different day: ghost car, overlay traces and a time-delta graph
         showing exactly where you gain or lose.<br>
-        Scroll on the map to zoom into a corner; the charts follow.</p>
+        Scroll on the map to zoom into a corner; the charts follow.<br>
+        Got a <b>.trace</b> file from someone else? Drop it anywhere on this
+        window to import their lap.</p>
       </div>
     </div>
 
@@ -227,6 +230,8 @@ if (location.protocol === "file:") {
 
   </main>
 </div>
+
+<div id="drop-veil" style="display:none"><div>DROP TO IMPORT LAP</div></div>
 
 <script src="app.js"></script>
 </body>

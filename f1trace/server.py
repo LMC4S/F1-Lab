@@ -11,6 +11,7 @@ import os
 import re
 import sqlite3
 import threading
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -19,6 +20,33 @@ from . import __version__, db, ids
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 
 _local = threading.local()
+
+# columns of the sessions table that travel inside a .trace export
+EXPORT_SESSION_FIELDS = (
+    "uid", "started_at", "packet_format", "game_year", "track_id",
+    "track_name", "session_type", "session_type_name",
+    "weather", "air_temp", "track_temp", "track_length")
+
+
+def _opt_int(v):
+    return None if v is None else int(v)
+
+
+def _clean_timestamp(v):
+    """A timestamp string from an imported file, or now if it looks off."""
+    v = str(v or "")
+    if re.fullmatch(r"[0-9T:. -]{4,32}", v):
+        return v
+    return time.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def _clean_meta(d):
+    """Setup/assists dict from an imported file: numeric values only."""
+    if not isinstance(d, dict):
+        return None
+    out = {str(k)[:48]: v for k, v in d.items()
+           if isinstance(v, (int, float, bool))}
+    return out or None
 
 
 def make_handler(db_path, recorder, demo=False):
@@ -73,6 +101,9 @@ def make_handler(db_path, recorder, demo=False):
                 m = re.fullmatch(r"/api/tracks/(-?\d+)/laps", path)
                 if m:
                     return self.track_laps(int(m.group(1)))
+                m = re.fullmatch(r"/api/laps/(\d+)/export", path)
+                if m:
+                    return self.export_lap(int(m.group(1)))
                 m = re.fullmatch(r"/api/laps/(\d+)", path)
                 if m:
                     return self.lap(int(m.group(1)))
@@ -103,6 +134,20 @@ def make_handler(db_path, recorder, demo=False):
                 con.commit()
                 return self._json({"ok": True})
             self._json({"error": "not found"}, 404)
+
+        def do_POST(self):
+            path = self.path.split("?")[0]
+            try:
+                if path == "/api/import":
+                    n = int(self.headers.get("Content-Length") or 0)
+                    if not 0 < n <= 32 * 1024 * 1024:
+                        return self._json({"error": "file too large"}, 413)
+                    return self.import_trace(self.rfile.read(n))
+                self._json({"error": "not found"}, 404)
+            except BrokenPipeError:
+                pass
+            except Exception as e:
+                self._json({"error": repr(e)}, 500)
 
         # ------------------------------------------------ api
 
@@ -149,6 +194,131 @@ def make_handler(db_path, recorder, demo=False):
             meta["team_name"] = ids.team_name(meta.get("team_id"))
             meta["samples"] = db.unpack_samples(row["samples"])
             self._json(meta)
+
+        # ------------------------------------------------ export / import
+        # A .trace file is one lap + its session metadata as gzipped JSON,
+        # made to be sent to a friend and dropped onto their TRACE window.
+
+        def export_lap(self, lap_id):
+            con = get_con()
+            lap = con.execute("SELECT * FROM laps WHERE id=?",
+                              (lap_id,)).fetchone()
+            if lap is None:
+                return self._json({"error": "not found"}, 404)
+            sess = con.execute("SELECT * FROM sessions WHERE id=?",
+                               (lap["session_id"],)).fetchone()
+            meta = {k: lap[k] for k in lap.keys()
+                    if k not in ("id", "session_id", "samples")}
+            for k in ("setup", "assists"):
+                meta[k] = json.loads(meta[k]) if meta[k] else None
+            doc = {
+                "trace": 1,                       # export format version
+                "exported_by": "TRACE " + __version__,
+                "session": {k: sess[k] for k in EXPORT_SESSION_FIELDS},
+                "lap": meta,
+                "samples": db.unpack_samples(lap["samples"]),
+            }
+            raw = gzip.compress(
+                json.dumps(doc, separators=(",", ":")).encode(), 9)
+            track = re.sub(r"[^a-z0-9]+", "",
+                           (sess["track_name"] or "").lower()) or "track"
+            t = lap["lap_time_ms"] or 0
+            fname = "%s-%d.%06.3f.trace" % (
+                track, t // 60000, (t % 60000) / 1000.0)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/gzip")
+            self.send_header("Content-Disposition",
+                             'attachment; filename="%s"' % fname)
+            self.send_header("Content-Length", str(len(raw)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(raw)
+
+        def import_trace(self, body):
+            try:
+                if body[:2] == b"\x1f\x8b":
+                    body = gzip.decompress(body)
+                doc = json.loads(body)
+                ver = doc["trace"]
+                sess, lap, samples = doc["session"], doc["lap"], doc["samples"]
+            except Exception:
+                return self._json({"error": "not a TRACE lap file"}, 400)
+            if not isinstance(ver, int) or ver < 1:
+                return self._json({"error": "not a TRACE lap file"}, 400)
+            if ver > 1:
+                return self._json(
+                    {"error": "made by a newer TRACE — update this one"}, 400)
+            if (not isinstance(samples, dict)
+                    or "t" not in samples or "d" not in samples
+                    or any(not isinstance(v, list) for v in samples.values())
+                    or len({len(v) for v in samples.values()}) != 1
+                    or len(samples["t"]) < 2
+                    or any(x is not None and not isinstance(x, (int, float))
+                           for v in samples.values() for x in v)):
+                return self._json({"error": "corrupt lap file"}, 400)
+            try:
+                # names and team labels are re-derived from ids on our side;
+                # nothing string-typed from the file reaches the viewer
+                track_id = int(sess["track_id"])
+                session_type = _opt_int(sess.get("session_type"))
+                lap_time_ms = _opt_int(lap.get("lap_time_ms"))
+                con = get_con()
+                uid = str(sess.get("uid") or "")[:32]
+                row = con.execute(
+                    "SELECT id FROM sessions WHERE uid=? AND track_id=?",
+                    (uid, track_id)).fetchone()
+                if row:
+                    sid = row["id"]
+                else:
+                    cur = con.execute(
+                        "INSERT INTO sessions (uid, started_at, packet_format,"
+                        " game_year, track_id, track_name, session_type,"
+                        " session_type_name, weather, air_temp, track_temp,"
+                        " track_length) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (uid, _clean_timestamp(sess.get("started_at")),
+                         _opt_int(sess.get("packet_format")),
+                         _opt_int(sess.get("game_year")), track_id,
+                         ids.track_name(track_id), session_type,
+                         ids.session_type_name(session_type),
+                         _opt_int(sess.get("weather")),
+                         _opt_int(sess.get("air_temp")),
+                         _opt_int(sess.get("track_temp")),
+                         _opt_int(sess.get("track_length"))))
+                    sid = cur.lastrowid
+                n = len(samples["t"])
+                dup = con.execute(
+                    "SELECT id FROM laps WHERE session_id=? AND"
+                    " lap_time_ms IS ? AND n_samples=?",
+                    (sid, lap_time_ms, n)).fetchone()
+                if dup:
+                    con.commit()   # the session row may be new
+                    return self._json({"ok": True, "lap_id": dup["id"],
+                                       "track_id": track_id,
+                                       "duplicate": True})
+                setup, assists = (_clean_meta(lap.get(k))
+                                  for k in ("setup", "assists"))
+                cur = con.execute(
+                    "INSERT INTO laps (session_id, car_role, car_index,"
+                    " lap_num, lap_time_ms, s1_ms, s2_ms, s3_ms, valid,"
+                    " tyre_visual, top_speed, n_samples, created_at, samples,"
+                    " setup, assists, team_id)"
+                    " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (sid, "guest", _opt_int(lap.get("car_index")),
+                     _opt_int(lap.get("lap_num")), lap_time_ms,
+                     _opt_int(lap.get("s1_ms")), _opt_int(lap.get("s2_ms")),
+                     _opt_int(lap.get("s3_ms")), 1 if lap.get("valid") else 0,
+                     _opt_int(lap.get("tyre_visual")),
+                     _opt_int(lap.get("top_speed")), n,
+                     _clean_timestamp(lap.get("created_at")),
+                     db.pack_samples(samples),
+                     json.dumps(setup) if setup else None,
+                     json.dumps(assists) if assists else None,
+                     _opt_int(lap.get("team_id"))))
+                con.commit()
+            except (KeyError, TypeError, ValueError):
+                return self._json({"error": "corrupt lap file"}, 400)
+            return self._json({"ok": True, "lap_id": cur.lastrowid,
+                               "track_id": track_id, "duplicate": False})
 
         # ------------------------------------------------ static
 

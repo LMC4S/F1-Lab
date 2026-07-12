@@ -670,7 +670,10 @@ async function pollStatus() {
     const st = await api("api/status");
     if (st.version) $("brand").title = "TRACE " + st.version;
     state.readonly = !!st.static;
-    if (state.readonly) $("list-foot").style.display = "none";
+    if (state.readonly) {   // static hosting: no server to write or export from
+      $("list-foot").style.display = "none";
+      $("export-btn").style.display = "none";
+    }
     const chip = $("status-chip");
     if (st.demo) {
       chip.className = "chip idle"; chip.textContent = "DEMO";
@@ -749,7 +752,7 @@ function fmtSession(lap) {
 function roleBadge(role) {
   // your own laps are the default case — only ghosts get a badge
   if (role === "player") return "";
-  const label = { rival: "RIVAL", pb_ghost: "PB·G" }[role] || role;
+  const label = { rival: "RIVAL", pb_ghost: "PB·G", guest: "GUEST" }[role] || role;
   return `<span class="badge ${role}">${label}</span>`;
 }
 
@@ -866,6 +869,57 @@ async function toggleRef(id) {
   }
   renderLapList(); rebuildScene();
 }
+
+/* ------------------------------------------------- import (.trace files)
+   No import button: drop an exported .trace file anywhere on the window.
+   Imported laps are stored as role "guest" and live in the GHOSTS filter. */
+
+async function importTraces(files) {
+  let last = null, dupes = 0;
+  const errs = [];
+  for (const f of files) {
+    try {
+      const r = await fetch("api/import",
+                            { method: "POST", body: await f.arrayBuffer() });
+      const res = await r.json();
+      if (!r.ok) throw new Error(res.error || "server error " + r.status);
+      if (res.duplicate) dupes++;
+      last = res;
+    } catch (e) { errs.push(`${f.name}: ${e.message}`); }
+  }
+  if (last) {
+    await loadTracks(true);
+    if (state.trackId !== last.track_id) {
+      const sel = $("track-select");
+      sel.value = last.track_id;
+      sel.dispatchEvent(new Event("change"));   // switches track, syncs label
+    }
+    await viewLap(last.lap_id);
+  }
+  const msg = [];
+  if (dupes) msg.push(dupes === 1 ? "That lap is already in your lab."
+                                  : `${dupes} of those laps are already in your lab.`);
+  if (errs.length) msg.push("Couldn't import:\n" + errs.join("\n"));
+  if (msg.length) alert(msg.join("\n\n"));
+}
+
+let dragDepth = 0;
+window.addEventListener("dragenter", (e) => {
+  if (state.readonly || ![...e.dataTransfer.types].includes("Files")) return;
+  e.preventDefault();
+  if (++dragDepth === 1) $("drop-veil").style.display = "";
+});
+window.addEventListener("dragover", (e) => { if (dragDepth) e.preventDefault(); });
+window.addEventListener("dragleave", () => {
+  if (dragDepth && --dragDepth === 0) $("drop-veil").style.display = "none";
+});
+window.addEventListener("drop", (e) => {
+  if (!dragDepth) return;
+  e.preventDefault();
+  dragDepth = 0;
+  $("drop-veil").style.display = "none";
+  importTraces([...e.dataTransfer.files]);
+});
 
 /* ---------------------------------------------------------------- track map */
 
@@ -1843,6 +1897,13 @@ $("setup-btn").addEventListener("click", () => {
   if (!state.lapA) return;
   state.setupOpen = !state.setupOpen;
   renderSetupCard();
+});
+$("export-btn").addEventListener("click", () => {
+  if (!state.lapA) return;
+  const a = document.createElement("a");
+  a.href = `api/laps/${state.lapA.id}/export`;   // Content-Disposition names it
+  a.download = "";
+  document.body.appendChild(a); a.click(); a.remove();
 });
 $("sort-seg").addEventListener("click", (e) => {
   const b = e.target.closest("button");

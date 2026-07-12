@@ -178,6 +178,7 @@ header {
 .badge.player { background: #123a44; color: var(--accent); }
 .badge.rival  { background: #3a2410; color: var(--ref); }
 .badge.pb_ghost { background: #262c3a; color: #9aa7bd; }
+.badge.guest { background: #2a2140; color: #b7a4f5; }   /* imported lap */
 .lap-main { flex: 1; min-width: 0; }
 .lap-time { font-weight: 700; font-variant-numeric: tabular-nums; }
 .lap-sub { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
@@ -201,6 +202,19 @@ header {
 .lap-row:hover .del { visibility: visible; }
 .del:hover { color: var(--red); }
 .empty-list { padding: 18px 14px; color: var(--dim); font-size: 12px; }
+
+/* full-window target shown while a file is dragged over the app */
+#drop-veil {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(11, 12, 15, .78);
+  pointer-events: none;   /* keep drag events flowing to the window */
+}
+#drop-veil div {
+  border: 2px dashed var(--accent); color: var(--accent);
+  border-radius: 12px; padding: 26px 48px;
+  font-size: 18px; font-weight: 700; font-style: italic; letter-spacing: 3px;
+}
 
 /* ---------- main / stage ---------- */
 #main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
