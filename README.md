@@ -17,6 +17,19 @@ time-delta graph.*
 
 ## Run
 
+Double-click **`F1 Lab.bat`** (Windows) or **`F1 Lab.command`** (Mac).
+The viewer opens in your browser by itself; close the terminal window
+when you're done and F1 Lab stops with it.
+
+So far this is only tested on macOS — the Windows launcher hasn't been
+tried yet. If it misbehaves, `python -m f1lab` from a terminal is the
+fallback.
+
+On a Mac the first double-click may be blocked if you downloaded the
+project as a zip — right-click the file and choose **Open** once.
+
+Or from a terminal:
+
 ```bash
 python3 -m f1lab
 ```
@@ -27,7 +40,7 @@ Nothing to install: any Python 3 will do — it's standard library only.
 - Viewer at **http://localhost:8020**
 - Data stored in `data/f1lab.db` (SQLite)
 
-Options: `--udp-port`, `--http-port`, `--db`.
+Options: `--udp-port`, `--http-port`, `--db`, `--no-browser`.
 
 To look around before hooking up the game, `python3 -m f1lab --demo`
 serves two bundled Melbourne laps, opened as a ready-made comparison.

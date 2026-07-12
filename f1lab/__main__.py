@@ -5,6 +5,7 @@ import os
 import shutil
 import socket
 import tempfile
+import webbrowser
 
 from . import recorder as recorder_mod
 from . import server
@@ -32,6 +33,8 @@ def main():
     ap.add_argument("--demo", action="store_true",
                     help="browse two bundled example laps; no game or "
                          "recording involved")
+    ap.add_argument("--no-browser", action="store_true",
+                    help="don't open the viewer in a browser on startup")
     args = ap.parse_args()
 
     if args.demo:
@@ -63,7 +66,8 @@ def main():
         rec = recorder_mod.Recorder(db_path, udp_port=args.udp_port)
         rec.start()
     try:
-        server.serve(db_path, rec, http_port=args.http_port, demo=args.demo)
+        server.serve(db_path, rec, http_port=args.http_port, demo=args.demo,
+                     open_browser=not args.no_browser)
     except KeyboardInterrupt:
         print("\n[f1lab] bye")
     except OSError:
@@ -72,6 +76,8 @@ def main():
               "or stop the other instance first,\n  or start with "
               "--http-port/--udp-port to use different ports."
               % (args.http_port, args.http_port))
+        if not args.no_browser:
+            webbrowser.open("http://localhost:%d" % args.http_port)
         raise SystemExit(1)
 
 

@@ -11,6 +11,7 @@ import os
 import re
 import sqlite3
 import threading
+import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from . import db, ids
@@ -188,8 +189,10 @@ def make_handler(db_path, recorder, demo=False):
     return Handler
 
 
-def serve(db_path, recorder, http_port=8020, demo=False):
+def serve(db_path, recorder, http_port=8020, demo=False, open_browser=False):
     server = ThreadingHTTPServer(("0.0.0.0", http_port),
                                  make_handler(db_path, recorder, demo))
     print("[f1lab] viewer at http://localhost:%d" % http_port)
+    if open_browser:
+        webbrowser.open("http://localhost:%d" % http_port)
     server.serve_forever()
