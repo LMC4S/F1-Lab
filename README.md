@@ -21,14 +21,17 @@ time-delta graph.*
 
 ## Run
 
-Nothing to install — any Python 3 will do, it's standard library only.
+Requires Python 3. TRACE uses only the standard library, so there is
+nothing to `pip install`.
 
-**Have the project folder?** Double-click **`TRACE.bat`** (Windows) or
-**`TRACE.command`** (Mac). The viewer opens in the browser by itself;
+**With a local copy of the project** — double-click `TRACE.bat`
+(Windows) or `TRACE.command` (Mac), or run `python3 -m f1trace` from a
+terminal in the project folder. The viewer opens in the browser;
 closing the terminal window stops TRACE.
 
-**Starting from nothing?** One pasted line downloads the project and
-starts it. Mac (Terminal):
+**Without one** — either command downloads the project and starts it.
+
+Mac (Terminal):
 
 ```bash
 curl -L https://github.com/LMC4S/F1-25-Trace/archive/refs/heads/main.tar.gz | tar xz && cd F1-25-Trace-main && python3 -m f1trace
@@ -40,7 +43,7 @@ Windows (PowerShell):
 iwr https://github.com/LMC4S/F1-25-Trace/archive/refs/heads/main.zip -OutFile F1-25-Trace.zip; Expand-Archive F1-25-Trace.zip . -Force; cd F1-25-Trace-main; python -m f1trace
 ```
 
-Details, when needed:
+Details:
 
 - Recorder listens on UDP **20777**; viewer at **http://localhost:8020**;
   laps stored in `data/f1trace.db` (SQLite)
