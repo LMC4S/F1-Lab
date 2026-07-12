@@ -315,8 +315,11 @@ header {
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   font-size: 12px; font-variant-numeric: tabular-nums;
 }
-#sector-card .card-tag { cursor: pointer; }
-#sector-card .card-tag:hover { filter: brightness(1.25); }
+/* every red card tag is clickable: TIMING and TELEMETRY fold in place
+   (▾/▸), SETUP closes (it reopens from the toolbar button) */
+#sector-card .card-tag, #hud .card-tag, #setup-card .card-tag { cursor: pointer; }
+#sector-card .card-tag:hover, #hud .card-tag:hover,
+#setup-card .card-tag:hover { filter: brightness(1.25); }
 /* folded: the card reduces to its floating TIMING tag, same spot */
 #sector-card.closed {
   width: 96px; height: 8px; padding: 0;
@@ -398,6 +401,16 @@ header {
   transform: skewX(-12deg); cursor: pointer;
 }
 #hud-steer-btn.on { border-color: var(--accent); color: var(--accent); }
+/* folded: like the TIMING card, only the floating tag remains */
+#hud.closed {
+  width: 122px; height: 8px; padding: 0;
+  background: none; border: none; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  cursor: default;
+}
+#hud.closed::before { display: none; }
+#hud.closed #halo, #hud.closed #hud-delta,
+#hud.closed #hud-drag, #hud.closed #hud-steer-btn { display: none; }
 #halo { width: 100%; display: block; }
 .arc-bg { fill: none; stroke: #222a39; stroke-width: 11; stroke-linecap: round; }
 .arc { fill: none; stroke-width: 11; stroke-linecap: round; }

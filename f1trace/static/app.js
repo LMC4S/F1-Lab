@@ -23,6 +23,7 @@ const state = {
   setupOpen: false,  // setup/assists panel visible
   timingOpen: true,  // TIMING card expanded (click its tag to fold)
   folded: new Set(), // collapsed session ids in the lap list
+  hudOpen: true,     // TELEMETRY card expanded (click its tag to fold)
   hudSteer: true,    // steering section of the telemetry card visible
   hudPos: null,      // dragged card position {x, y} as stage fractions
   readonly: false,   // static hosting (GitHub Pages demo): nothing to delete
@@ -1373,6 +1374,14 @@ function initHalo() {
   }
 }
 
+/* Fold/unfold the whole TELEMETRY card down to its tag — the red card
+   tags are the fold toggles (same interaction as the TIMING card), the
+   grey pills (DRAG, STEER) are controls within an open card. */
+function applyHudOpen() {
+  $("hud").classList.toggle("closed", !state.hudOpen);
+  $("hud-tag").textContent = `TELEMETRY ${state.hudOpen ? "▾" : "▸"}`;
+}
+
 /* Show/hide the steering section; the cluster slides up to fill the gap. */
 function applyHudSteer() {
   const on = state.hudSteer;
@@ -1733,6 +1742,12 @@ $("sector-card").addEventListener("click", (e) => {
   catch (err) { /* private mode */ }
   updateSectorCard();
 });
+// the SETUP card has a dedicated toolbar toggle, so its tag just closes it
+$("setup-card").addEventListener("click", (e) => {
+  if (!e.target.closest(".card-tag")) return;
+  state.setupOpen = false;
+  renderSetupCard();
+});
 
 /* ------------------------------------------------- setup & assists panel */
 
@@ -1783,7 +1798,7 @@ function renderSetupCard() {
   card.style.display = "";
   const A = state.lapA, B = state.lapB;
   const cols = [A, B].filter(Boolean);
-  let html = `<div class="card-tag">SETUP</div><table><tr><th></th>
+  let html = `<div class="card-tag" title="close — same as the SETUP button">SETUP</div><table><tr><th></th>
     <th class="cA">${B ? "YOU" : "LAP"}</th>${B ? '<th class="cB">VS</th>' : ""}</tr>`;
   html += `<tr><td class="rowlbl">Car</td>` + cols.map((l) =>
     `<td>${l.team_name || "—"}</td>`).join("") + "</tr>";
@@ -2020,14 +2035,16 @@ window.addEventListener("keydown", (e) => {
   const hud = $("hud"), stage = $("stage");
   try {
     state.hudPos = JSON.parse(localStorage.getItem("f1trace.hudPos"));
+    state.hudOpen = localStorage.getItem("f1trace.hudOpen") !== "0";
     state.hudSteer = localStorage.getItem("f1trace.hudSteer") !== "0";
     state.timingOpen = localStorage.getItem("f1trace.timingOpen") !== "0";
   } catch (e) { /* defaults */ }
+  applyHudOpen();
   applyHudSteer();
   applyHudPos();
   let ox = 0, oy = 0, moving = false;
   hud.addEventListener("pointerdown", (e) => {
-    if (e.target.closest("#hud-steer-btn")) return;
+    if (!state.hudOpen || e.target.closest("#hud-steer-btn, .card-tag")) return;
     moving = true; hud.classList.add("drag");
     hud.setPointerCapture(e.pointerId);
     const r = hud.getBoundingClientRect();
@@ -2054,6 +2071,13 @@ window.addEventListener("keydown", (e) => {
     catch (e) { /* private mode */ }
     applyHudSteer();
     applyHudPos();   // re-clamp: the card just changed height
+  });
+  $("hud-tag").addEventListener("click", () => {
+    state.hudOpen = !state.hudOpen;
+    try { localStorage.setItem("f1trace.hudOpen", state.hudOpen ? "1" : "0"); }
+    catch (e) { /* private mode */ }
+    applyHudOpen();
+    applyHudPos();   // re-clamp: the card just changed size
   });
 }
 
