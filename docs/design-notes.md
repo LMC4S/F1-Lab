@@ -193,11 +193,13 @@ The corner badges on the track map answer "which corner is costing me"
 - **Comparing adds a line instead of recoloring.** The viewed lap's
   chart traces keep their channel colors (speed cyan, throttle green,
   brake red, steer violet); the reference lap joins each panel as one
-  neutral grey-white line — thinner, dashed, semi-transparent. Identity
-  is carried by the line treatment rather than by hue, so no channel
-  color ever has to double as "whose lap is this", and the pairing
-  survives color-blindness. On the map, the TIMING card and the
-  dominance bar the reference stays orange.
+  neutral grey-white line, thinner and dimmer. Identity is carried by
+  the line treatment rather than by hue, so no channel color ever has
+  to double as "whose lap is this", and the pairing survives
+  color-blindness. The ghost line is deliberately **solid, not dashed** —
+  the local differences against the reference are exactly what the
+  comparison exists to show, and dashes punch holes in them. On the
+  map, the TIMING card and the dominance bar the reference stays orange.
 - **Road surface vs background**: the road (`#1b202a`, edge `#3a4150`)
   sits one step above the near-black carbon-weave background — visible
   as a surface, but muted enough that the saturated racing line and the

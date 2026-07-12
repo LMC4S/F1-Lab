@@ -130,7 +130,7 @@ Everything the recorder has stored is on the web page it serves at
   (speed, gear, throttle/brake arcs, rev lights, steering wheel, DRS/OT).
 - Mark any other lap as **VS** — from any session, any day: ghost dot,
   overlaid speed / throttle / brake / steering traces (yours keep their
-  colors, the reference joins as a dashed grey ghost line), and a
+  colors, the reference joins as a grey ghost line), and a
   **DELTA** graph vs distance — green where the viewed lap gains time on
   the reference, red where it loses.
 - Next to each chart: the **values at the playhead**, both laps side by

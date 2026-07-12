@@ -1493,13 +1493,12 @@ function buildChart(cfg) {
     ctx.textAlign = "left";
   }
 
-  function trace(lap, color, alpha, width, dash) {
+  function trace(lap, color, alpha, width) {
     const s = lap.samples, col = s[cfg.col];
     const i0 = Math.max(0, lowerIdx(s.d, d0) - 1);
     const i1 = Math.min(s.d.length - 1, lowerIdx(s.d, d1) + 2);
     ctx.save();
     ctx.beginPath(); ctx.rect(0, 0, w, h); ctx.clip();
-    ctx.setLineDash(dash ? dash.map((v) => v * dpr) : []);
     ctx.beginPath();
     ctx.moveTo(X(s.d[i0]), Y(col[i0]));
     for (let i = i0 + 1; i <= i1; i++) ctx.lineTo(X(s.d[i]), Y(col[i]));
@@ -1508,9 +1507,11 @@ function buildChart(cfg) {
     ctx.restore(); ctx.globalAlpha = 1;
   }
   // comparing: your lines keep their channel colors; the reference lap is
-  // a "ghost" — one neutral grey-white, thin and dashed, in every panel.
-  // Identity is carried by the line treatment, not by hue.
-  if (state.lapB) trace(state.lapB, "#b9c2d0", 0.65, 1, [5, 4]);
+  // a "ghost" — one neutral grey-white in every panel. Solid, not dashed:
+  // the local differences against the reference are the whole point of
+  // the comparison, so the line must be continuous — thinner and dimmer
+  // is what says "the other lap".
+  if (state.lapB) trace(state.lapB, "#b9c2d0", 0.75, 1);
   trace(A, cfg.color || "#22d3ee", 1, 1.5);
 
   chartCache[cfg.id] = { img: ctx.getImageData(0, 0, w, h), d0, d1, w, h };

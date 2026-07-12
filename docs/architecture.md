@@ -164,7 +164,7 @@ handful of subsystems:
   chart — zooms into a corner; the map view is the single source of
   truth and the charts re-scale to its visible distance range.
 - **Charts** — speed/throttle/brake/steer vs distance in per-channel
-  colors, the reference lap overlaid as a dashed grey ghost line, plus a
+  colors, the reference lap overlaid as a grey ghost line, plus a
   delta-time trace (green/red fill = gaining/losing). Click/drag
   anywhere to seek; the playhead is shared with the map and HUD.
 - **Halo HUD** — SVG instrument cluster (speed, gear, rev lights,
