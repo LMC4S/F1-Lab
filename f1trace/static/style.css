@@ -516,22 +516,21 @@ header {
   letter-spacing: 1px; color: var(--dim); padding-top: 4px; text-align: right;
 }
 /* value of each trace at the playhead, at the right end of its row:
-   lap A in the trace color over the reference lap in orange; while
-   comparing, color says whose lap it is, so lap A is cyan everywhere */
+   lap A always in its channel color, the reference lap in the same
+   neutral grey-white as its ghost line */
 .cv {
   width: 72px; flex: none; align-self: center;
   display: flex; flex-direction: column; gap: 1px;
   font-size: 12px; font-weight: 700; font-style: italic;
   font-variant-numeric: tabular-nums; color: var(--text); line-height: 1.25;
 }
-.cv .vB { color: var(--ref); }
+.cv .vB { color: #b9c2d0; }
 #cv-delta.pos { color: var(--red); }
 #cv-delta.neg { color: var(--green); }
 #cvA-speed { color: #22d3ee; }
 #cvA-thr   { color: #34d399; }
 #cvA-brk   { color: #f87171; }
 #cvA-steer { color: #a78bfa; }
-#charts.compare .cv .vA { color: #22d3ee; }
 canvas.chart { flex: 1; min-width: 0; min-height: 0; cursor: crosshair; }
 
 /* ---------- empty ---------- */
