@@ -477,8 +477,23 @@ header {
    same x range */
 .chart-row label {
   width: 184px; flex: none; font-size: 9px; font-weight: 700;
-  letter-spacing: 1px; color: var(--dim); padding-top: 4px; text-align: right;
+  letter-spacing: 1px; color: var(--dim); padding-top: 4px;
+  display: flex; justify-content: space-between; align-items: baseline;
 }
+/* value of each trace at the playhead, lap A in its trace color, B in
+   the reference orange */
+.cv {
+  display: flex; gap: 9px; letter-spacing: 0;
+  font-size: 13px; font-weight: 700; font-style: italic;
+  font-variant-numeric: tabular-nums; color: var(--text);
+}
+.cv .vB { color: var(--ref); }
+#cv-delta.pos { color: var(--red); }
+#cv-delta.neg { color: var(--green); }
+#cvA-speed { color: #22d3ee; }
+#cvA-thr   { color: #34d399; }
+#cvA-brk   { color: #f87171; }
+#cvA-steer { color: #a78bfa; }
 canvas.chart { flex: 1; min-width: 0; min-height: 0; cursor: crosshair; }
 
 /* ---------- empty ---------- */

@@ -107,6 +107,9 @@ Everything the recorder has stored is on the web page it serves at
   overlaid speed / throttle / brake / steering traces, and a **DELTA** graph
   vs distance — green where you gain time on the reference, red where you
   lose it.
+- Next to each chart: the **values at the playhead**, both laps side by
+  side — the mid-corner speed difference as a number, not just a gap
+  between curves.
 - **Corner badges** on the map show every corner where you gain or lose
   0.1 s or more vs the reference. Time is attributed braking-point to
   braking-point, so a slow exit is charged to the corner that caused it and

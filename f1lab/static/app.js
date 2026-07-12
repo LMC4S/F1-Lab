@@ -1752,14 +1752,38 @@ function drawFrame() {
   const dA = interp(s.t, s.d, t);
   $("scrub").value = Math.round((dA / scrubMaxD()) * 1000);
   $("time-display").textContent = fmtTime(t, 1);
+  cursorReadouts(t, dA);
 
-  const hd = $("hud-delta");
+  const hd = $("hud-delta"), dv = $("cv-delta");
   if (state.lapB) {
     const dSec = (t - interp(state.lapB.samples.d, state.lapB.samples.t,
                              Math.min(dA, state.lapB.maxD))) / 1000;
     hd.textContent = fmtDelta(dSec);
     hd.className = "hud-delta " + (dSec >= 0 ? "pos" : "neg");
-  } else hd.textContent = "";
+    dv.textContent = fmtDelta(dSec);
+    dv.className = "cv " + (dSec >= 0 ? "pos" : "neg");
+  } else { hd.textContent = ""; dv.textContent = ""; }
+}
+
+/* Numeric readouts in the chart label gutter: each trace's value at the
+   playhead. Lap A is sampled by time, lap B at the same track distance —
+   same convention as the ghost car on the map and the delta chart. */
+function cursorReadouts(t, dA) {
+  const sA = state.lapA.samples, B = state.lapB;
+  const fmt = {
+    spd: (v) => String(Math.round(v)),
+    thr: (v) => Math.round(v) + "%",
+    brk: (v) => Math.round(v) + "%",
+    str: (v) => v <= -3 ? "L " + Math.round(-v)
+      : v >= 3 ? "R " + Math.round(v) : "0",
+  };
+  for (const [el, col] of [["speed", "spd"], ["thr", "thr"],
+                           ["brk", "brk"], ["steer", "str"]]) {
+    $("cvA-" + el).textContent = fmt[col](interp(sA.t, sA[col], t));
+    $("cvB-" + el).textContent = B
+      ? fmt[col](interp(B.samples.d, B.samples[col], Math.min(dA, B.maxD)))
+      : "";
+  }
 }
 
 function loop(now) {
