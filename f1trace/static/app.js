@@ -21,6 +21,7 @@ const state = {
   assistFilter: "all", // all | on | off
   hideInvalid: false,
   setupOpen: false,  // setup/assists panel visible
+  timingOpen: true,  // TIMING card expanded (click its tag to fold)
   folded: new Set(), // collapsed session ids in the lap list
   hudSteer: true,    // steering section of the telemetry card visible
   hudPos: null,      // dragged card position {x, y} as stage fractions
@@ -1667,9 +1668,14 @@ function updateToolbar() {
 
 function updateSectorCard() {
   const A = state.lapA, B = state.lapB;
+  const card = $("sector-card");
+  const tag = `<div class="card-tag" title="collapse / expand this card">` +
+    `TIMING ${state.timingOpen ? "▾" : "▸"}</div>`;
+  card.classList.toggle("closed", !state.timingOpen);
+  if (!state.timingOpen) { card.innerHTML = tag; return; }
   const secs = (l) => [l.s1_ms, l.s2_ms, l.s3_ms];
   const fmtS = (ms) => ms ? (ms / 1000).toFixed(3) : "—";
-  let html = `<div class="card-tag">TIMING</div>
+  let html = `${tag}
     <table><tr><th></th><th class="s1">S1</th><th class="s2">S2</th>
     <th class="s3">S3</th><th>LAP</th></tr>
     <tr><td class="rowlbl">${B ? "YOU" : "LAP"}</td>
@@ -1690,8 +1696,18 @@ function updateSectorCard() {
     const dl = (A.lap_time_ms - B.lap_time_ms) / 1000;
     html += `<td class="laptime ${dl <= 0 ? "neg" : "pos"}">${dl >= 0 ? "+" : "−"}${Math.abs(dl).toFixed(3)}</td></tr>`;
   }
-  $("sector-card").innerHTML = html + "</table>";
+  card.innerHTML = html + "</table>";
 }
+
+// the card is rebuilt via innerHTML on every update, so the fold toggle
+// lives on the container, which persists
+$("sector-card").addEventListener("click", (e) => {
+  if (!e.target.closest(".card-tag")) return;
+  state.timingOpen = !state.timingOpen;
+  try { localStorage.setItem("f1trace.timingOpen", state.timingOpen ? "1" : "0"); }
+  catch (err) { /* private mode */ }
+  updateSectorCard();
+});
 
 /* ------------------------------------------------- setup & assists panel */
 
@@ -1980,6 +1996,7 @@ window.addEventListener("keydown", (e) => {
   try {
     state.hudPos = JSON.parse(localStorage.getItem("f1trace.hudPos"));
     state.hudSteer = localStorage.getItem("f1trace.hudSteer") !== "0";
+    state.timingOpen = localStorage.getItem("f1trace.timingOpen") !== "0";
   } catch (e) { /* defaults */ }
   applyHudSteer();
   applyHudPos();

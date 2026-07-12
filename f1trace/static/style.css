@@ -315,6 +315,15 @@ header {
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   font-size: 12px; font-variant-numeric: tabular-nums;
 }
+#sector-card .card-tag { cursor: pointer; }
+#sector-card .card-tag:hover { filter: brightness(1.25); }
+/* folded: the card reduces to its floating TIMING tag, same spot */
+#sector-card.closed {
+  width: 96px; height: 8px; padding: 0;
+  background: none; border: none; box-shadow: none;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+#sector-card.closed::before { display: none; }
 #sector-card table { border-collapse: collapse; }
 #sector-card th {
   font-size: 9px; font-weight: 800; letter-spacing: 1px; color: var(--dim);
