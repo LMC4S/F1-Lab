@@ -206,28 +206,23 @@ if (location.protocol === "file:") {
         <option value="2">2×</option>
         <option value="4">4×</option>
       </select>
-      <div id="time-display">0:00.000</div>
       <input id="scrub" type="range" min="0" max="1000" value="0">
+      <div id="time-display">0:00.000</div>
     </div>
 
     <div id="splitter" title="drag to resize the charts"></div>
     <div id="charts">
-      <div class="chart-row tall"><label>
-        <span class="cv"><span id="cvA-speed" class="vA"></span><span id="cvB-speed" class="vB"></span></span>
-        SPEED</label><canvas id="ch-speed" class="chart"></canvas></div>
-      <div class="chart-row"><label>
-        <span class="cv"><span id="cvA-thr" class="vA"></span><span id="cvB-thr" class="vB"></span></span>
-        THROTTLE</label><canvas id="ch-thr" class="chart"></canvas></div>
-      <div class="chart-row"><label>
-        <span class="cv"><span id="cvA-brk" class="vA"></span><span id="cvB-brk" class="vB"></span></span>
-        BRAKE</label><canvas id="ch-brk" class="chart"></canvas></div>
-      <div class="chart-row"><label>
-        <span class="cv"><span id="cvA-steer" class="vA"></span><span id="cvB-steer" class="vB"></span></span>
-        STEER</label><canvas id="ch-steer" class="chart"></canvas></div>
+      <div class="chart-row tall"><label>SPEED</label><canvas id="ch-speed" class="chart"></canvas>
+        <span class="cv"><span id="cvA-speed" class="vA"></span><span id="cvB-speed" class="vB"></span></span></div>
+      <div class="chart-row"><label>THROTTLE</label><canvas id="ch-thr" class="chart"></canvas>
+        <span class="cv"><span id="cvA-thr" class="vA"></span><span id="cvB-thr" class="vB"></span></span></div>
+      <div class="chart-row"><label>BRAKE</label><canvas id="ch-brk" class="chart"></canvas>
+        <span class="cv"><span id="cvA-brk" class="vA"></span><span id="cvB-brk" class="vB"></span></span></div>
+      <div class="chart-row"><label>STEER</label><canvas id="ch-steer" class="chart"></canvas>
+        <span class="cv"><span id="cvA-steer" class="vA"></span><span id="cvB-steer" class="vB"></span></span></div>
       <div class="chart-row" id="delta-row" style="display:none">
-        <label>
-        <span class="cv" id="cv-delta"></span>
-        DELTA</label><canvas id="ch-delta" class="chart"></canvas></div>
+        <label>DELTA</label><canvas id="ch-delta" class="chart"></canvas>
+        <span class="cv" id="cv-delta"></span></div>
     </div>
 
   </main>

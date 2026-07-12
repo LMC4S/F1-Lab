@@ -472,20 +472,20 @@ header {
   display: flex; align-items: stretch; gap: 8px; margin-top: 4px;
 }
 .chart-row.tall { flex: 1.5; }
-/* label width + row gap (8px) = play btn + speed select + time display
-   + transport gaps, so the chart canvases and the scrub bar share the
-   same x range */
+/* the chart canvases and the scrub bar share the same x range:
+   label width + row gap (8px) = play btn + speed select + gaps on the
+   left, and the value cell + row gap = time display + gaps on the right */
 .chart-row label {
-  width: 184px; flex: none; font-size: 9px; font-weight: 700;
-  letter-spacing: 1px; color: var(--dim); padding-top: 4px;
-  display: flex; justify-content: space-between; align-items: baseline;
+  width: 104px; flex: none; font-size: 9px; font-weight: 700;
+  letter-spacing: 1px; color: var(--dim); padding-top: 4px; text-align: right;
 }
-/* value of each trace at the playhead, lap A in its trace color, B in
-   the reference orange */
+/* value of each trace at the playhead, at the right end of its row:
+   lap A in the trace color over the reference lap in orange */
 .cv {
-  display: flex; gap: 9px; letter-spacing: 0;
-  font-size: 13px; font-weight: 700; font-style: italic;
-  font-variant-numeric: tabular-nums; color: var(--text);
+  width: 72px; flex: none; align-self: center;
+  display: flex; flex-direction: column; gap: 1px;
+  font-size: 12px; font-weight: 700; font-style: italic;
+  font-variant-numeric: tabular-nums; color: var(--text); line-height: 1.25;
 }
 .cv .vB { color: var(--ref); }
 #cv-delta.pos { color: var(--red); }
