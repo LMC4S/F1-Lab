@@ -67,16 +67,11 @@ def make_handler(db_path, recorder, demo=False):
                     if demo:
                         st["demo"] = True
                     return self._json(st)
-                if path == "/api/sessions":
-                    return self.sessions()
                 if path == "/api/tracks":
                     return self.tracks()
                 m = re.fullmatch(r"/api/tracks/(-?\d+)/laps", path)
                 if m:
                     return self.track_laps(int(m.group(1)))
-                m = re.fullmatch(r"/api/sessions/(\d+)/laps", path)
-                if m:
-                    return self.session_laps(int(m.group(1)))
                 m = re.fullmatch(r"/api/laps/(\d+)", path)
                 if m:
                     return self.lap(int(m.group(1)))
@@ -110,17 +105,6 @@ def make_handler(db_path, recorder, demo=False):
 
         # ------------------------------------------------ api
 
-        def sessions(self):
-            rows = get_con().execute(
-                "SELECT s.*, COUNT(l.id) AS n_laps,"
-                " MIN(CASE WHEN l.car_role='player' AND l.valid=1"
-                "     THEN l.lap_time_ms END) AS best_ms"
-                " FROM sessions s LEFT JOIN laps l ON l.session_id = s.id"
-                " GROUP BY s.id HAVING n_laps > 0 OR s.id IN"
-                "  (SELECT MAX(id) FROM sessions)"
-                " ORDER BY s.id DESC").fetchall()
-            self._json([dict(r) for r in rows])
-
         def tracks(self):
             rows = get_con().execute(
                 "SELECT s.track_id, s.track_name, COUNT(l.id) AS n_laps,"
@@ -149,14 +133,6 @@ def make_handler(db_path, recorder, demo=False):
                 d["team_name"] = ids.team_name(d["team_id"])
                 out.append(d)
             self._json(out)
-
-        def session_laps(self, sid):
-            rows = get_con().execute(
-                "SELECT id, car_role, car_index, lap_num, lap_time_ms,"
-                " s1_ms, s2_ms, s3_ms, valid, tyre_visual, top_speed,"
-                " n_samples, created_at FROM laps WHERE session_id=?"
-                " ORDER BY id", (sid,)).fetchall()
-            self._json([dict(r) for r in rows])
 
         def lap(self, lap_id):
             row = get_con().execute(

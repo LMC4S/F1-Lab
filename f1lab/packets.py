@@ -19,12 +19,10 @@ HEADER = struct.Struct("<HBBBBBQfIIBB")  # 29 bytes
 MOTION = 0
 SESSION = 1
 LAP_DATA = 2
-EVENT = 3
 PARTICIPANTS = 4
 CAR_SETUPS = 5
 CAR_TELEMETRY = 6
 CAR_STATUS = 7
-SESSION_HISTORY = 11
 TIME_TRIAL = 14
 CAR_TELEMETRY2 = 16
 
@@ -174,8 +172,7 @@ _LAP_CAR = struct.Struct("<IIHBHBHBHBfffBBBBBBBBBBBBBBBHHBfB")  # 57 B
 
 class CarLap:
     __slots__ = ("last_lap_ms", "current_lap_ms", "s1_ms", "s2_ms",
-                 "lap_distance", "total_distance", "lap_num",
-                 "invalid", "driver_status", "result_status")
+                 "lap_distance", "lap_num", "invalid")
 
     def __init__(self, v):
         self.last_lap_ms = v[0]
@@ -183,11 +180,8 @@ class CarLap:
         self.s1_ms = v[3] * 60000 + v[2]
         self.s2_ms = v[5] * 60000 + v[4]
         self.lap_distance = v[10]
-        self.total_distance = v[11]
         self.lap_num = v[14]
         self.invalid = v[18]
-        self.driver_status = v[25]
-        self.result_status = v[26]
 
 
 def parse_lap_data(data, fmt):
@@ -284,9 +278,3 @@ def parse_time_trial(data, fmt):
             "equal_perf": v[9], "custom_setup": v[10], "valid": v[11],
         }
     return out
-
-
-# ---------------------------------------------------------------- events
-
-def parse_event_code(data):
-    return data[HEADER.size:HEADER.size + 4].decode("ascii", "replace")

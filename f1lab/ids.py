@@ -18,9 +18,6 @@ SESSION_TYPES = {
     15: "Race", 16: "Race 2", 17: "Race 3", 18: "Time Trial",
 }
 
-# Visual tyre compounds (subset that matters for F1 cars)
-TYRES = {16: "Soft", 17: "Medium", 18: "Hard", 7: "Inter", 8: "Wet"}
-
 # Constructors (F1 25 grid, 2024 retro grid, 2026 Season Pack grid)
 TEAMS = {
     0: "Mercedes", 1: "Ferrari", 2: "Red Bull", 3: "Williams",
@@ -38,20 +35,12 @@ TEAMS = {
     485: "Audi '26", 486: "Cadillac '26",
 }
 
-WEATHER = {0: "Clear", 1: "Light Cloud", 2: "Overcast", 3: "Light Rain",
-           4: "Heavy Rain", 5: "Storm"}
-
-
 def track_name(track_id):
     return TRACKS.get(track_id, "Track %d" % track_id)
 
 
 def session_type_name(st):
     return SESSION_TYPES.get(st, "Session %d" % st)
-
-
-def tyre_name(visual_id):
-    return TYRES.get(visual_id, "C%d" % visual_id)
 
 
 def team_name(team_id):

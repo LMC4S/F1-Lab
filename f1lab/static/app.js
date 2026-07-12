@@ -950,11 +950,6 @@ function outlineStroke(geom, color, width, alpha) {
   dctx.lineJoin = "round"; dctx.lineCap = "round";
   dctx.stroke(); dctx.globalAlpha = 1;
 }
-function rangeStroke(lap, d0, d1, color, width, alpha) {
-  pathStroke(lap, lowerIdx(lap.samples.d, d0), lowerIdx(lap.samples.d, d1),
-             color, width, alpha);
-}
-
 /* Racing-line colors per sample, for the active mode. */
 function computeLineColors(A) {
   const s = A.samples, n = s.d.length, colors = new Array(n);
