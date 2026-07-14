@@ -145,7 +145,7 @@ lap A = viewed, lap B = reference, playhead time, view modes) and a
 handful of subsystems:
 
 - **Lap list** — all laps of a track across sessions, sortable
-  (recent/fastest), filterable (you/ghosts, assists on/off, hide
+  (recent/fastest), filterable (YOU/GHOSTS, assists on/off, hide
   invalid), with per-session folding. Any lap can be viewed (A) and any
   other marked REF (B).
 - **Track geometry** (`trackGeom`/`calibrateGeom`/`synthCoords`) — the

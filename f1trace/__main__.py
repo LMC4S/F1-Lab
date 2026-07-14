@@ -39,7 +39,7 @@ def main():
                          "devices on the network)")
     ap.add_argument("--db", default=None, help="database file path")
     ap.add_argument("--demo", action="store_true",
-                    help="browse two bundled example laps; no game or "
+                    help="browse the bundled example laps; no game or "
                          "recording involved")
     ap.add_argument("--no-browser", action="store_true",
                     help="don't open the viewer in a browser on startup")
@@ -64,7 +64,7 @@ def main():
 
     print("=" * 62)
     if args.demo:
-        print("  TRACE %s — demo: two bundled Melbourne laps, no recording"
+        print("  TRACE %s — demo: bundled Melbourne laps, no recording"
               % __version__)
     else:
         print("  TRACE %s — telemetry recorder + viewer" % __version__)

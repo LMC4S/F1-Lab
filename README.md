@@ -3,17 +3,16 @@
 TRACE — the **T**elemetry **R**ecording **A**nd **C**omparison **E**ngine — records laps
 driven in **F1 25, the EA / Codemasters racing game**, for the 2026
 Season Pack. The game broadcasts live telemetry on track;
-TRACE captures every completed lap you drive — plus the Time Trial
-ghosts' pace — keeps them across sessions, and replays and compares
-any two:
+TRACE captures every completed player lap — and the Time Trial ghosts'
+pace — keeps laps across sessions, and replays and compares any two:
 track map, dashboard, input traces, time delta, and a badge on every
 corner that costs time. The point is to show where a faster lap gains:
 which corners, and whether it's braking or throttle.
 
 *Unofficial fan project — not affiliated with Formula 1 or EA/Codemasters.*
 
-**[Try it in your browser](https://lmc4s.github.io/F1-25-Trace/)** — the two
-bundled demo laps in the full viewer, nothing to install.
+**[Browser demo](https://lmc4s.github.io/F1-25-Trace/)** — the bundled
+demo laps in the full viewer, nothing to install.
 
 ![Two laps compared: speed-colored racing line, green corner badges, telemetry charts and delta trace](docs/img/compare-speed.png)
 *Two laps compared: racing line colored by speed, a badge on every
@@ -64,7 +63,7 @@ Details:
 - Options: `--udp-port`, `--http-port`, `--db`, `--no-browser`, `--host`
   (viewer bind address; defaults to `127.0.0.1` — set `0.0.0.0` to open the
   viewer to other devices on the network), `--version`
-- `python3 -m f1trace --demo` — the two bundled Melbourne laps in the
+- `python3 -m f1trace --demo` — the bundled Melbourne laps in the
   local viewer, no game and no recording; the browser demo linked above,
   but offline
 - Mac: if the project came as a zip download, the first double-click may
@@ -85,8 +84,8 @@ Details:
 | UDP Send Rate | 60 Hz |
 | UDP Format | **F1 25: 2026 Season Pack** (2025 base format also supported) |
 
-Then just drive. Every lap you complete is stored automatically, and in
-Time Trial the ghosts' pace is captured alongside (see below).
+Every completed lap is stored automatically; in Time Trial the ghosts'
+pace is captured alongside (see below).
 
 One caveat: game updates have been seen to quietly reset **UDP Format**
 to the base F1 25 value — worth re-checking after a patch.
@@ -102,38 +101,36 @@ is arriving:
 | `IDLE` | listening but nothing arriving. Normal in menus (the game only broadcasts on track); if it stays IDLE while driving, re-check the IP address and port above |
 | `OFFLINE` | no recorder — usually another TRACE instance already holds the UDP port |
 
-Load into a session and the chip should flip to `LIVE` within a couple of
-seconds.
+On track, the chip flips to `LIVE` within a couple of seconds.
 
 ## Ghost laps: pace references, times only
 
-In Time Trial the game shows a ghost — your PB, or any leaderboard
-entry loaded as the rival: a friend, the top 10, the world record.
-TRACE captures that ghost as a **pace reference**: its lap and sector
-times, and its lap clock against track distance. Compare against it
-(pace rows have a `RIVAL` or `PB·G` badge and clicking one starts the
-comparison) and you get the corner badges, the DELTA graph, GAP-mode
-track dominance and a dot on the map pulling ahead or falling behind —
-*which corner the faster driver gains in, and how much*.
+In Time Trial the game shows a ghost — the personal best, or any
+leaderboard entry loaded as the rival. TRACE captures that ghost as a
+**pace reference**: its lap and sector times, and its lap clock against
+track distance. Pace rows carry a `RIVAL` or `PB·G` badge; clicking one
+starts a comparison, which yields the corner badges, the DELTA graph,
+GAP-mode track dominance and a dot on the map pulling ahead or falling
+behind — which corner the faster driver gains in, and how much.
 
-What you deliberately don't get is the ghost's throttle, brake or
-steering. The game does not broadcast honest telemetry for the shadow
-car — its input channels interleave genuine-looking frames with
-flat-out placeholder junk, varying by session — and the official UDP
-spec supports exactly the data TRACE keeps: times (the TimeTrial
-packet) and the ghost's progress along the lap. Versions up to 0.1.3
-stored the full fabricated stream; 0.2.0 keeps only what is real, and
-converts previously recorded ghost laps down to pace references on
-first start. The full story is in
+A pace reference deliberately carries no throttle, brake or steering.
+The game does not broadcast honest telemetry for the shadow car — its
+input channels interleave genuine-looking frames with flat-out
+placeholder junk, varying by session — and the official UDP spec
+supports exactly the data TRACE keeps: times (the TimeTrial packet)
+and the ghost's progress along the lap. Versions up to 0.1.3 stored
+the full fabricated stream; since 0.1.4 only the real subset is
+stored, and previously recorded ghost laps are converted to pace
+references on first start. The full story is in
 [docs/design-notes.md](docs/design-notes.md).
 
-Complete laps to study inputs against still exist: your own, and laps
-other TRACE users share as `.trace` files (see
+Complete laps with input traces come from two sources: the player's
+own laps, and laps other TRACE users share as `.trace` files (see
 [Sharing laps](#sharing-laps)).
 
-**Keep the ghost car enabled** in the game — an invisible ghost is not
-broadcast at all. While driving, a `RIVAL PACE ✓` chip in the header
-confirms the capture is live.
+The ghost car must stay enabled in the game — an invisible ghost is
+not broadcast at all. While driving, a `RIVAL PACE ✓` chip in the
+header confirms the capture is live.
 
 ## Browsing and comparing laps
 
@@ -149,8 +146,9 @@ Everything the recorder has stored is on the web page it serves at
 - Click a lap to replay it: dot on the track map + instrument cluster
   (speed, gear, throttle/brake arcs, rev lights, steering wheel, DRS/OT).
 - Mark any other lap as **VS** — from any session, any day: ghost dot,
-  overlaid speed / throttle / brake / steering traces (yours keep their
-  colors, the reference joins as a grey ghost line), and a
+  overlaid speed / throttle / brake / steering traces (the viewed lap's
+  traces keep their channel colors, the reference joins as a grey ghost
+  line), and a
   **DELTA** graph vs distance — green where the viewed lap gains time on
   the reference, red where it loses.
 - Next to each chart: the **values at the playhead**, both laps side by
@@ -184,11 +182,12 @@ driving.*
 
 **EXPORT** (next to SETUP) saves the viewed lap as a `.trace` file — the
 lap and its session info as compressed JSON, tens of kilobytes, small
-enough for any chat. Got a `.trace` file from someone else? Drop it
-anywhere on the TRACE window: their lap appears under its original
-session with a **GUEST** badge, lives in the GHOSTS filter, and compares
-like any of your own laps — corner badges, delta graph and all. Re-importing
-a lap that is already in the database is detected and skipped.
+enough for any chat. A `.trace` file from another player, dropped
+anywhere on the TRACE window, is imported: the lap appears under its
+original session with a **GUEST** badge, lives in the GHOSTS filter, and
+compares like a locally recorded lap — corner badges, delta graph and
+all. Re-importing a lap that is already in the database is detected and
+skipped.
 
 ## Track maps
 
