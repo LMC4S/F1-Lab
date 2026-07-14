@@ -75,22 +75,22 @@ placeholders but cannot recover data the game never sent, and in
 sessions where most frames are junk the resulting throttle/brake traces
 are effectively fiction.
 
-Full ghost capture was therefore removed in 0.1.4: **the only ghost
-channels trustworthy in every session were position, the lap
-clock/distance and the TimeTrial packet's times — and a reference lap
-with fabricated inputs misleads exactly where the tool is supposed to
-be authoritative.** The official spec agrees by omission: the words
+Full ghost capture was therefore removed: **the only ghost channels
+trustworthy in every session were position, the lap clock/distance and
+the TimeTrial packet's times — and a reference lap with fabricated
+inputs misleads exactly where the tool is supposed to be
+authoritative.** The official spec agrees by omission: the words
 "ghost" and "shadow car" appear nowhere in EA's UDP documentation, and
 the only Time-Trial-specific data it defines is the TimeTrial packet —
 times, team and assist flags. Everything else TRACE used to read from
 the ghost's car slot was undocumented behaviour that happened to look
 plausible in some sessions.
 
-### Pace references (0.2.0): keep exactly the trustworthy subset
+### Pace references (0.1.4): keep exactly the trustworthy subset
 
 Which corner the ghost gains in doesn't need pedals — it needs
 time-at-distance, and that is precisely the pair of channels genuine in
-every observed session. So ghosts came back in 0.2.0 as a
+every observed session. So the same release (0.1.4) ships ghosts as a
 **fundamentally different object**: a *pace reference*, not a lap.
 
 - **Stored**: the `(currentLapTime, lapDistance)` series, and the

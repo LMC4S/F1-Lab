@@ -67,7 +67,7 @@ def _migrate(con):
 
 
 def _strip_ghost_channels(con):
-    """Ghost laps are times-only pace references since 0.2.0. Laps stored
+    """Ghost laps are times-only pace references since 0.1.4. Laps stored
     by the 0.1.x full-telemetry ghost capture carry fabricated channels
     (placeholder-poisoned inputs, derived speed) — strip them down to the
     genuine time-at-distance series. Idempotent: converted laps have only
