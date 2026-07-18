@@ -171,7 +171,7 @@ def make_handler(db_path, recorder, demo=False):
                 " s.packet_format"
                 " FROM laps l JOIN sessions s ON s.id = l.session_id"
                 " WHERE s.track_id=?"
-                " ORDER BY s.id DESC, l.id", (track_id,)).fetchall()
+                " ORDER BY s.id DESC, l.id DESC", (track_id,)).fetchall()
             out = []
             for r in rows:
                 d = dict(r)
