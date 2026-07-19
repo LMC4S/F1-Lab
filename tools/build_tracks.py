@@ -67,20 +67,31 @@ def convert(path):
 
 def main():
     repo = sys.argv[1] if len(sys.argv) > 1 else "f1-circuits"
+    dest = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "f1trace", "static", "tracks.json")
+    try:
+        old = json.load(open(dest))
+    except OSError:
+        old = {}
     out = {}
     for tid, fid in TRACK_FILES.items():
         path = os.path.join(repo, "circuits", fid + ".geojson")
         out[str(tid)] = convert(path)
+        # official corner charts (tools/fetch_corners.py) survive a rebuild
+        if "corners" in old.get(str(tid), {}):
+            out[str(tid)]["corners"] = old[str(tid)]["corners"]
         print("track %2d  %-42s %5dm  %d pts" % (
             tid, out[str(tid)]["name"], out[str(tid)]["len"],
             len(out[str(tid)]["pts"])))
     for alias, base in ALIASES.items():
-        out[str(alias)] = out[str(base)]
-    dest = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                        "f1trace", "static", "tracks.json")
+        # reverse layouts share the shape but not the corner chart
+        out[str(alias)] = {k: v for k, v in out[str(base)].items()
+                           if k != "corners"}
     with open(dest, "w") as f:
         json.dump(out, f, separators=(",", ":"))
     print("wrote %s (%.0f KB)" % (dest, os.path.getsize(dest) / 1024))
+    print("now run tools/fetch_corners.py — outlines are written raw and "
+          "need re-aligning to the official start/finish")
 
 
 if __name__ == "__main__":

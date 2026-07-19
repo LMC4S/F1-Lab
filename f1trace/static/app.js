@@ -135,8 +135,10 @@ function trackGeom(tid) {
   geom.version = 0;
   geom.xform = null;   // affine game->outline map (set by calibration)
   try {
-    // "cal2": xform is fitted in the rotated frame, older entries are not.
-    const cal = JSON.parse(localStorage.getItem("f1trace.cal2." + tid));
+    // "cal3": fitted against outlines aligned to the official start/finish
+    // (tools/fetch_corners.py); older keys indexed differently-ordered
+    // points and are left to expire.
+    const cal = JSON.parse(localStorage.getItem("f1trace.cal3." + tid));
     if (cal && "m" in cal) {
       applyCal(geom, cal);
       geom.xform = cal.m;
@@ -144,7 +146,7 @@ function trackGeom(tid) {
     }
   } catch (e) { /* no saved calibration */ }
   geomNormals(geom);
-  geom.corners = outlineCorners(geom, TURN_COUNT[tid]);
+  geom.corners = outlineCorners(geom, TURN_COUNT[tid], tr.corners);
   geomCache[tid] = geom;
   return geom;
 }
@@ -298,13 +300,60 @@ function segmentCorners(kap, step, th) {
 }
 
 /* Corners of the outline, numbered in driving order from the start line.
-   Unmistakable corners (tight radius) are found first; when the official
-   turn count is known, progressively weaker thresholds fill the remaining
-   numbering slots — that's how fast officially-numbered sweeps like Eau
-   Rouge get in without sharp corners drowning in noise. */
-function outlineCorners(geom, target) {
+   With an official corner chart (lap-distance fractions of each published
+   corner, tools/fetch_corners.py) the numbering is authoritative: every
+   anchor snaps to the nearest curvature apex of the drawn outline, held
+   short of its neighbours. Without one, detection has to guess which
+   bends the official numbering counts: unmistakable corners (tight
+   radius) are found first; when the official turn count is known,
+   progressively weaker thresholds fill the remaining numbering slots —
+   that's how fast officially-numbered sweeps like Eau Rouge get in
+   without sharp corners drowning in noise. */
+function outlineCorners(geom, target, chart) {
   const st = geom.step, n = geom.n, L = geom.total;
   const kap = loopKappa(geom.xs, geom.zs, st);
+  const kq = (q) => kap[((q % n) + n) % n];
+  if (chart && chart.length) {
+    const m = chart.length;
+    const anchors = chart.map((f) => (f * L) / st);   // grid units, sorted
+    let pa = anchors[m - 1] - n;      // previous corner's snapped apex
+    return anchors.map((a, i) => {
+      // snap to the local curvature peak nearest the anchor — nearest, not
+      // strongest, so a corner never grabs its neighbour's tighter apex —
+      // among peaks with at least 0.3× the window's top curvature (tracing
+      // noise makes weaker ripples). ±100 m window (chart vs outline
+      // tracing drifts that far), held between the previous snapped apex
+      // and the midpoint to the next anchor: numbering order is preserved
+      // by construction
+      const next = anchors[(i + 1) % m] + (i === m - 1 ? n : 0);
+      const lo = Math.max(a - 100 / st, pa + 2);
+      const hi = Math.min(a + 100 / st, (a + next) / 2);
+      let peak = 0;
+      for (let q = Math.ceil(lo); q <= Math.floor(hi); q++)
+        peak = Math.max(peak, Math.abs(kq(q)));
+      let apex = Math.round(a);
+      let bestD = Infinity;
+      for (let q = Math.ceil(lo); q <= Math.floor(hi); q++) {
+        const v = Math.abs(kq(q));
+        if (v < Math.max(peak * 0.3, 1 / 800) ||
+            v < Math.abs(kq(q - 1)) || v < Math.abs(kq(q + 1)))
+          continue;
+        if (Math.abs(q - a) < bestD) { bestD = Math.abs(q - a); apex = q; }
+      }
+      if (bestD === Infinity)   // no interior peak (apex just past the
+        for (let q = Math.ceil(lo); q <= Math.floor(hi); q++)  // window)
+          if (Math.abs(kq(q)) > Math.abs(kq(apex))) apex = q;
+      pa = apex;
+      // extent: walk out while the bend keeps the apex's sign and heft
+      const sg = kq(apex) >= 0 ? 1 : -1;
+      const th = Math.max(Math.abs(kq(apex)) * 0.3, 1 / 800);
+      let q0 = apex, q1 = apex;
+      while (q0 - 1 > lo && sg * kq(q0 - 1) > th) q0--;
+      while (q1 + 1 < hi && sg * kq(q1 + 1) > th) q1++;
+      return { n: i + 1, s0: q0 * st, s1: q1 * st, apexS: apex * st,
+               ang: kq(apex) };
+    });
+  }
   const arcs = (s) => ({
     s0: s.i0 * st,
     s1: (s.i1 >= s.i0 ? s.i1 : s.i1 + n) * st,
@@ -386,7 +435,8 @@ function calibrateGeom(geom, lap, tid) {
   applyCal(geom, best);
   geomNormals(geom);
   geom.version++;
-  geom.corners = outlineCorners(geom, TURN_COUNT[tid]);
+  geom.corners = outlineCorners(geom, TURN_COUNT[tid],
+                                TRACKS && TRACKS[tid] && TRACKS[tid].corners);
   // affine registration game -> outline: with it, the lap's genuine
   // lateral line can be drawn around the fixed centerline
   const pairs = [];
@@ -398,7 +448,7 @@ function calibrateGeom(geom, lap, tid) {
   }
   geom.xform = affineFit(pairs);
   try {
-    localStorage.setItem("f1trace.cal2." + tid, JSON.stringify(
+    localStorage.setItem("f1trace.cal3." + tid, JSON.stringify(
       { rev: best.rev, off: best.off, m: geom.xform }));
   } catch (e) { /* private mode etc. */ }
 }
