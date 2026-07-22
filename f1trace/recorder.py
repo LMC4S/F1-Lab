@@ -240,9 +240,13 @@ class Recorder(threading.Thread):
                 return  # duplicate frame
             if cl.current_lap_ms < last[0] or cl.lap_distance < last[1] - 1.0:
                 # flashback / rewind / reset: drop samples past the
-                # new position
+                # new position, and re-seed validity from this frame —
+                # "restart lap" wipes the game's invalid flag (same lap
+                # number, fresh valid run), while a plain flashback
+                # keeps it set, so the frame itself is the truth
                 while samples and samples[-1][1] >= cl.lap_distance:
                     samples.pop()
+                buf.invalid = bool(cl.invalid)
 
         if cl.invalid:
             buf.invalid = True
